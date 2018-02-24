@@ -1,9 +1,8 @@
 import logging
-import urllib2, base64
+import urllib.request, urllib.parse, base64
 from wsgiref.handlers import format_date_time
 from datetime import datetime
 from time import mktime
-from urlparse import urlparse
 from hashlib import sha1, md5
 from hmac import new as hmac
 import json
@@ -69,7 +68,7 @@ class Vuforia(object):
         return format_date_time(stamp)
 
     def _get_request_path(self, req):
-        o = urlparse(req.get_full_url())
+        o = urllib.parse(req.get_full_url())
         return o.path
 
     def _hmac_sha1_base64(self, key, message):
@@ -99,8 +98,8 @@ class Vuforia(object):
         auth_header = 'VWS %s:%s' % (self.access_key, signature)
         req.add_header('Authorization', auth_header)
         try:
-            return urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
+            return urllib.request.urlopen(req)
+        except urllib.request.HTTPError as e:
             response = json.loads(e.read())
             result_code = response['result_code']
             if result_code == 'RequestTimeTooSkewed':
@@ -128,19 +127,19 @@ class Vuforia(object):
 
     def get_target_by_id(self, target_id):
         url = '%s/targets/%s' % (self.host, target_id)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         response = self._get_authenticated_response(req)
         return json.loads(response.read())['target_record']
 
     def get_target_ids(self):
         url = '%s/targets' % self.host
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         response = self._get_authenticated_response(req)
         return json.loads(response.read())['results']
 
     def get_summary(self):
         url = '%s/summary' % self.host
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
 
@@ -153,7 +152,7 @@ class Vuforia(object):
     def add_target(self, data):
         url = '%s/targets' % self.host
         data = json.dumps(data)
-        req = urllib2.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
+        req = urllib.request.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
 
@@ -161,7 +160,7 @@ class Vuforia(object):
         # Takes time to process
         url = '%s/targets/%s' % (self.host, target_id)
         data = json.dumps(data)
-        req = urllib2.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
+        req = urllib.request.Request(url, data, {'Content-Type': 'application/json; charset=utf-8'})
         req.get_method = lambda: 'PUT'
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
@@ -169,7 +168,7 @@ class Vuforia(object):
     def delete_target(self, target_id):
         # Takes time to process
         url = '%s/targets/%s' % (self.host, target_id)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.get_method = lambda: 'DELETE'
         response = self._get_authenticated_response(req)
         return json.loads(response.read())
@@ -178,13 +177,13 @@ def main():
     v = Vuforia(access_key="7df65e58925861b6c1ac01a22bb04933afd88fef",
                 secret_key="92afe240bc5ae740259d7a06b4590c4cef2da1b7")
     for target in v.get_targets():
-        print target
+        print (target)
 
     image_file = open('/Users/Luke/documents/python/lukeweller-python-vuforia/python-vuforia/sponge.jpg')
     image = base64.b64encode(image_file.read())
     metadata_file = open('/Users/Luke/documents/python/lukeweller-python-vuforia/python-vuforia/meta.txt')
     metadata = base64.b64encode(metadata_file.read())
-    print v.add_target({"name": "zxczxc", "width": 320.0, "image": image, "application_metadata": metadata, "active_flag": 1})
+    print (v.add_target({"name": "zxczxc", "width": 320.0, "image": image, "application_metadata": metadata, "active_flag": 1}))
 
 if __name__ == "__main__":
     main()
